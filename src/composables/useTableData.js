@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch  } from 'vue'
 import { useQuasar } from 'quasar'
 
 /**
@@ -6,7 +6,7 @@ import { useQuasar } from 'quasar'
  * con paginación, ordenación y filtrado del lado del servidor.
  * @param {Function} fetchApi - La función de la API que obtiene los datos.
  */
-export default function useTableData (fetchApi) {
+export default function useTableData (fetchApi, filterRef = ref('')) {
   const $q = useQuasar()
 
   const rows = ref([])
@@ -27,7 +27,8 @@ export default function useTableData (fetchApi) {
         page: pagination.value.page,
         perPage: pagination.value.rowsPerPage,
         sortBy: pagination.value.sortBy,
-        sortDirection: pagination.value.descending ? 'desc' : 'asc'
+        sortDirection: pagination.value.descending ? 'desc' : 'asc',
+        search: filterRef.value
       }
 
       const response = await fetchApi(params)
@@ -60,6 +61,10 @@ export default function useTableData (fetchApi) {
     fetchData()
   }
 
+  watch(filterRef, () => {
+    pagination.value.page = 1
+    fetchData()
+  })
   // Carga los datos iniciales cuando el componente se monta
   onMounted(() => {
     fetchData()
