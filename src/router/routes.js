@@ -29,7 +29,25 @@ const routes = [
         name: 'admin-subjects',
         component: () => import('pages/admin/SubjectsPage.vue'),
         meta: { requiresAuth: true, permission: 'manage-subjects' }
+      },
+      {
+        path: 'lab-sessions/new',
+        name: 'admin-new-lab-session',
+        component: () => import('pages/teacher/NewLabSessionPage.vue'),
+        meta: { requiresAuth: true, permission: 'create-lab-session' }
+      },
+      {
+        path: 'lab-sessions/open',
+        name: 'admin-open-lab-sessions',
+        component: () => import('pages/student/OpenLabSessionsPage.vue'),
+        meta: { requiresAuth: true, permission: 'create-lab-session' }
       }
+      /* {
+        path: 'lab-sessions/:id', // Ruta dinámica con el ID
+        name: 'admin-active-lab-session',
+        component: () => import('pages/teacher/ActiveLabSessionPage.vue'), // La página que construiremos después
+        meta: { requiresAuth: true }
+      } */
     ],
     meta: { requiresAuth: true }
   },
