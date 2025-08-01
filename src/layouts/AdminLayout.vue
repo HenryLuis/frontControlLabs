@@ -58,16 +58,16 @@ const menuLinks = [
     permission: 'view-dashboard' // Inventa un permiso si es necesario
   },
   {
-    title: 'Especialidades',
-    icon: 'science',
-    link: '/admin/specialties',
-    permission: 'manage-specialties'
-  },
-  {
     title: 'Aulas',
     icon: 'class',
     link: '/admin/classrooms',
     permission: 'manage-classrooms'
+  },
+  {
+    title: 'Materias',
+    icon: 'book',
+    link: '/admin/subjects',
+    permission: 'manage-subjects'
   }
   // Añade aquí futuros enlaces (Materias, Sesiones, etc.)
 ]
