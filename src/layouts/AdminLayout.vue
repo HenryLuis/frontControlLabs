@@ -68,6 +68,18 @@ const menuLinks = [
     icon: 'book',
     link: '/admin/subjects',
     permission: 'manage-subjects'
+  },
+  {
+    title: 'Nueva Sesión Lab.',
+    icon: 'add_circle',
+    link: '/admin/lab-sessions/new',
+    permission: 'create-lab-session' // <-- Clave para la visibilidad
+  },
+  {
+    title: 'Registrar Asistencia',
+    icon: 'how_to_reg',
+    link: '/admin/lab-sessions/open',
+    permission: 'create-lab-session' // Mismo permiso que para crear
   }
   // Añade aquí futuros enlaces (Materias, Sesiones, etc.)
 ]
