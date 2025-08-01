@@ -1,16 +1,43 @@
 const routes = [
+  // Ruta para el Login (pública)
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('pages/LoginPage.vue')
+  },
+  // Rutas de Administración (protegidas)
+  {
+    /* path: '/',
+    component: () => import('layouts/MainLayout.vue'), */
+    path: '/admin',
+    component: () => import('layouts/AdminLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'admin-dashboard',
+        component: () => import('pages/IndexPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'classrooms',
+        name: 'admin-classrooms',
+        component: () => import('pages/admin/ClassroomsPage.vue'),
+        meta: { requiresAuth: true, permission: 'manage-classrooms' }
+      }
+    ],
+    meta: { requiresAuth: true }
+  },
+  // Redirección por defecto: si el usuario va a la raíz, lo mandamos al login.
   {
     path: '/',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
+    redirect: '/login'
   },
 
-  // Always leave this as last one,
-  // but you can also remove it
+  // Ruta para errores 404
   {
     path: '/:catchAll(.*)*',
-    component: () => import('pages/ErrorNotFound.vue'),
-  },
+    component: () => import('pages/ErrorNotFound.vue')
+  }
 ]
 
 export default routes
