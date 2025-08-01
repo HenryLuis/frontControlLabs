@@ -23,6 +23,12 @@ const routes = [
         name: 'admin-classrooms',
         component: () => import('pages/admin/ClassroomsPage.vue'),
         meta: { requiresAuth: true, permission: 'manage-classrooms' }
+      },
+      {
+        path: 'subjects',
+        name: 'admin-subjects',
+        component: () => import('pages/admin/SubjectsPage.vue'),
+        meta: { requiresAuth: true, permission: 'manage-subjects' }
       }
     ],
     meta: { requiresAuth: true }
