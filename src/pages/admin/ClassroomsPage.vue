@@ -13,6 +13,14 @@
       @request="onRequest"
       binary-state-sort
     >
+      <!-- AÑADIMOS EL TEMPLATE PARA EL CAMPO DE BÚSQUEDA -->
+      <template v-slot:top-left>
+        <q-input dense debounce="300" v-model="filter" placeholder="Buscar">
+          <template v-slot:append>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+      </template>
       <!-- Botón para crear una nueva aula -->
       <template v-slot:top-right>
         <q-btn color="primary" icon="add" label="Nueva Aula" @click="handleNewClassroom" />
@@ -86,7 +94,7 @@ const columns = [
   { name: 'capacity', label: 'Capacidad', field: 'capacity', sortable: true, align: 'center' },
   { name: 'actions', label: 'Acciones', field: 'actions', align: 'right' }
 ]
-
+const filter = ref('')
 // Usamos el composable, pasándole la función que obtiene los datos
 const {
   rows,
@@ -94,7 +102,7 @@ const {
   pagination,
   onRequest,
   fetchData // Exponemos fetchData para poder refrescar la tabla
-} = useTableData(classroomApi.fetch)
+} = useTableData(classroomApi.fetch, filter)
 
 // --- Lógica del Diálogo y Formulario ---
 const dialogVisible = ref(false)
