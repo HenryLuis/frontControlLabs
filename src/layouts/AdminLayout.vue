@@ -20,7 +20,7 @@
         <!-- Itera sobre nuestra lista de enlaces -->
         <template v-for="link in menuLinks" :key="link.title">
           <!-- Renderiza el enlace solo si el usuario tiene el permiso requerido -->
-          <q-item v-if="authStore.can(link.permission)" :to="link.link" clickable v-ripple>
+          <q-item v-if="isVisible(link)" :to="link.link" clickable v-ripple>
             <q-item-section avatar>
               <q-icon :name="link.icon" />
             </q-item-section>
@@ -49,6 +49,16 @@ const router = useRouter()
 
 const leftDrawerOpen = ref(false)
 
+const isVisible = (link) => {
+  if (link.permission && !authStore.can(link.permission)) {
+    return false
+  }
+  if (link.role && !authStore.hasRole(link.role)) {
+    return false
+  }
+  return true
+}
+
 // Define aquí todos los enlaces de tu menú
 const menuLinks = [
   {
@@ -73,13 +83,51 @@ const menuLinks = [
     title: 'Nueva Sesión Lab.',
     icon: 'add_circle',
     link: '/admin/lab-sessions/new',
-    permission: 'create-lab-session' // <-- Clave para la visibilidad
+    permission: 'create-lab-session', // <-- Clave para la visibilidad
+    role: 'Docente'
   },
   {
     title: 'Registrar Asistencia',
     icon: 'how_to_reg',
     link: '/admin/lab-sessions/open',
-    permission: 'create-lab-session' // Mismo permiso que para crear
+    permission: 'create-lab-session', // Mismo permiso que para crear
+    role: 'Estudiante'
+  },
+  /* {
+    path: 'lab-sessions/:id', // <-- Ruta dinámica que acepta un ID
+    name: 'admin-active-lab-session',
+    component: () => import('pages/teacher/ActiveLabSessionPage.vue'),
+    meta: { requiresAuth: true } // Abierta a roles con sesión, la lógica interna controlará el acceso
+  }, */
+  {
+    title: 'Mis Sesiones',
+    icon: 'pending_actions',
+    link: '/admin/my-sessions',
+    role: 'Docente' // O el permiso que decidas
+  },
+  {
+    title: 'Mis Cursos',
+    icon: 'school',
+    link: '/admin/my-courses',
+    role: 'Docente'
+  },
+  {
+    title: 'Revisar Sesiones',
+    icon: 'fact_check',
+    link: '/admin/review-sessions',
+    role: 'Control Interno'
+  },
+  {
+    title: 'Gestionar Usuarios',
+    icon: 'manage_accounts',
+    link: '/admin/users',
+    permission: 'manage-users' // <-- Permiso del Admin
+  },
+  {
+    title: 'Gestionar Cursos',
+    icon: 'category',
+    link: '/admin/courses',
+    permission: 'manage-users' // Un permiso de Admin
   }
   // Añade aquí futuros enlaces (Materias, Sesiones, etc.)
 ]

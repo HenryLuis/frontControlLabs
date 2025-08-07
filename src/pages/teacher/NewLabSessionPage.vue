@@ -1,16 +1,22 @@
 <template>
   <q-page padding>
     <div class="text-h4 q-mb-md">Iniciar Nueva Sesión de Laboratorio</div>
-
     <q-card>
       <q-form @submit.prevent="handleSubmit">
         <q-card-section class="q-gutter-md">
-          <!-- El nombre del docente se obtiene del usuario logueado -->
-          <q-input
-            label="Docente"
-            :model-value="authStore.user?.name"
+          <q-input label="Docente" :model-value="authStore.user?.name" filled readonly />
+
+          <!-- Selector para Cursos -->
+          <q-select
             filled
-            readonly
+            v-model="formData.course_id"
+            :options="courseOptions"
+            label="Seleccione el Curso"
+            emit-value
+            map-options
+            lazy-rules
+            :rules="[val => !!val || 'Debe seleccionar un curso']"
+            :loading="loadingCourses"
           />
 
           <!-- Selector para Aulas -->
@@ -23,10 +29,11 @@
             map-options
             lazy-rules
             :rules="[val => !!val || 'Debe seleccionar un aula']"
+            :loading="loadingClassrooms"
           />
 
           <!-- Selector para Materias -->
-          <q-select
+          <!-- <q-select
             filled
             v-model="formData.subject_id"
             :options="subjectOptions"
@@ -35,14 +42,14 @@
             map-options
             lazy-rules
             :rules="[val => !!val || 'Debe seleccionar una materia']"
-          />
+          /> -->
 
           <!-- Selector de Fecha -->
-          <q-input filled v-model="formData.session_date" label="Fecha de la Sesión" mask="date" :rules="['date']">
+          <q-input filled v-model="formData.session_date" label="Fecha de la Sesión" mask="####-##-##" :rules="[val => !!val || 'La fecha es requerida']">
             <template v-slot:append>
               <q-icon name="event" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-date v-model="formData.session_date">
+                  <q-date v-model="formData.session_date" mask="YYYY-MM-DD">
                     <div class="row items-center justify-end">
                       <q-btn v-close-popup label="Cerrar" color="primary" flat />
                     </div>
@@ -106,10 +113,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQuasar } from 'quasar'
+import { useQuasar, date } from 'quasar'
 import { useAuthStore } from 'src/stores/authStore'
 import { classroomApi } from 'src/api/classrooms' // Reutilizamos nuestros servicios
-import { subjectApi } from 'src/api/subjects'   // Reutilizamos nuestros servicios
+import { courseApi } from 'src/api/courses'
+//import { subjectApi } from 'src/api/subjects'   // Reutilizamos nuestros servicios
 import { labSessionApi } from 'src/api/labSessions'
 
 const $q = useQuasar()
@@ -118,59 +126,65 @@ const authStore = useAuthStore()
 
 // --- Estado del Formulario ---
 const formData = ref({
-  teacher_id: authStore.user?.id, // El docente es el usuario logueado
+  course_id: null,
   classroom_id: null,
-  subject_id: null,
-  session_date: new Date().toISOString().substr(0, 10), // Fecha de hoy por defecto
-  start_time: '',
-  end_time: '',
-  observations: ''
+  session_date: date.formatDate(Date.now(), 'YYYY-MM-DD'),
+  start_time: '09:00',
+  end_time: '11:00',
 })
 const isSubmitting = ref(false)
 
 // --- Opciones para los QSelect ---
+const courseOptions = ref([])
 const classroomOptions = ref([])
-const subjectOptions = ref([])
+const loadingCourses = ref(true)
+const loadingClassrooms = ref(true)
 
 // --- Cargar datos para los selectores al montar el componente ---
 onMounted(async () => {
   try {
-    // Pedimos TODAS las aulas y materias (sin paginación)
-    const [classroomsRes, subjectsRes] = await Promise.all([
-      classroomApi.fetch({ perPage: -1 }), // perPage: -1 para traer todos
-      subjectApi.fetch({ perPage: -1 })
+    const teacherId = authStore.user?.id
+    if (!teacherId) {
+      throw new Error('No se pudo identificar al docente.')
+    }
+
+    // Pedimos los cursos del docente y todas las aulas en paralelo
+    const [coursesRes, classroomsRes] = await Promise.all([
+      courseApi.fetch({ teacher_id: teacherId }),
+      classroomApi.fetch({ perPage: -1 })
     ])
-    // Mapeamos los datos al formato que QSelect necesita: { label, value }
+
+    // Mapeamos los datos para QSelect
+    courseOptions.value = coursesRes.data.data.map(c => ({
+      label: `${c.subject.name} (${c.subject.acronym}) - ${c.semester}`,
+      value: c.id
+    }))
     classroomOptions.value = classroomsRes.data.data.map(c => ({ label: c.name, value: c.id }))
-    subjectOptions.value = subjectsRes.data.data.map(s => ({ label: `${s.name} (${s.acronym})`, value: s.id }))
+
   } catch (error) {
-    console.error('Error al cargar datos para el formulario:', error)
-    $q.notify({ color: 'negative', message: 'Error al cargar datos para el formulario.' })
+    console.error('Error al cargar datos del formulario:', error);
+    $q.notify({ color: 'negative', message: 'Error al cargar los datos del formulario.' })
+  } finally {
+    loadingCourses.value = false
+    loadingClassrooms.value = false
   }
 })
 
-// --- Lógica de envío ---
 const handleSubmit = async () => {
+  if (isSubmitting.value) return;
   isSubmitting.value = true
   try {
-    //const response = await labSessionApi.createHeader(formData.value)
-    //const newSessionId = response.data.data.id
-    // La respuesta de la API ya no se guarda en una variable 'response'
-    await labSessionApi.createHeader(formData.value)
-
+    const response = await labSessionApi.createHeader(formData.value)
+    const newSessionId = response.data.data.id
     $q.notify({
       color: 'positive',
-      message: 'Sesión iniciada con éxito. Ahora los estudiantes pueden registrar su asistencia.'
+      message: 'Sesión iniciada con éxito.'
     })
-
-    // TODO: Redirigir a la página de "Sesión en Progreso"
-    // router.push(`/admin/lab-sessions/${newSessionId}`)
-    // Por ahora, solo limpiamos el formulario o redirigimos a otra página
-    router.push('/admin') // O a un dashboard de docente
-
+    router.push(`/admin/lab-sessions/${newSessionId}`)
   } catch (error) {
     console.error('Error al iniciar la sesión:', error)
-    $q.notify({ color: 'negative', message: 'Ocurrió un error al iniciar la sesión.' })
+    const errorMsg = error.response?.data?.message || 'Ocurrió un error.'
+    $q.notify({ color: 'negative', message: errorMsg })
   } finally {
     isSubmitting.value = false
   }
