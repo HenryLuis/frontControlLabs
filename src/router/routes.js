@@ -5,6 +5,11 @@ const routes = [
     name: 'login',
     component: () => import('pages/LoginPage.vue')
   },
+  /* {
+    path: '/reset-password',
+    name: 'reset-password', // Le damos un nombre para que coincida con la configuración del backend
+    component: () => import('pages/ResetPasswordPage.vue') // Crearemos esta página después
+  }, */
   // Rutas de Administración (protegidas)
   {
     /* path: '/',
@@ -41,13 +46,49 @@ const routes = [
         name: 'admin-open-lab-sessions',
         component: () => import('pages/student/OpenLabSessionsPage.vue'),
         meta: { requiresAuth: true, permission: 'create-lab-session' }
-      }
-      /* {
+      },
+      {
         path: 'lab-sessions/:id', // Ruta dinámica con el ID
         name: 'admin-active-lab-session',
         component: () => import('pages/teacher/ActiveLabSessionPage.vue'), // La página que construiremos después
         meta: { requiresAuth: true }
-      } */
+      },
+      {
+        path: 'my-sessions',
+        name: 'admin-my-sessions',
+        component: () => import('pages/teacher/MySessionsPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'my-courses',
+        name: 'admin-my-courses',
+        component: () => import('pages/teacher/MyCoursesPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'courses/:id', // Ruta dinámica para el detalle
+        name: 'admin-course-management',
+        component: () => import('pages/teacher/CourseManagementPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'review-sessions',
+        name: 'admin-review-sessions',
+        component: () => import('pages/internal/ReviewSessionsPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'users',
+        name: 'admin-users',
+        component: () => import('pages/admin/UsersPage.vue'),
+        meta: { requiresAuth: true, permission: 'manage-users' }
+      },
+      {
+        path: 'courses',
+        name: 'admin-courses',
+        component: () => import('pages/admin/CoursesPage.vue'),
+        meta: { requiresAuth: true, permission: 'manage-users' }
+      }
     ],
     meta: { requiresAuth: true }
   },

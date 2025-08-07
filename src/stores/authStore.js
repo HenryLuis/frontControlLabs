@@ -4,19 +4,28 @@ import { ref, computed } from 'vue'
 import { api } from 'boot/axios' // Nuestra instancia de Axios
 
 export const useAuthStore = defineStore('auth', () => {
-  // --- STATE ---
-  const user = ref(null) // El objeto del usuario logueado
+  // =================================================================
+  // STATE (Propiedades reactivas)
+  // =================================================================
+  const user = ref(null)
+
+  // =================================================================
+  // GETTERS (Propiedades computadas basadas en el state)
+  // =================================================================
   const isAuthenticated = computed(() => !!user.value)
   const permissions = computed(() => user.value?.permissions || [])
+  const roles = computed(() => user.value?.roles || []) // <-- NUEVO GETTER
 
-  // --- ACTIONS ---
+  // =================================================================
+  // ACTIONS (Métodos para modificar el state)
+  // =================================================================
 
   /**
    * Inicia sesión, pide el usuario y lo guarda en el state.
    * @param {object} credentials - { email, password }
    */
   const login = async (credentials) => {
-    // Hacemos la petición de login a nuestra API Laravel
+    // La ruta de login ahora está prefijada, usamos la URL completa
     await api.post('/login', credentials)
     // Si el login es exitoso, obtenemos los datos del usuario
     await fetchUser()
@@ -35,12 +44,11 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const fetchUser = async () => {
     try {
+      // La ruta del usuario también está prefijada
       const response = await api.get('/user')
       user.value = response.data.data
     } catch (error) {
-      // Imprime el error en la consola para depuración
       console.error('Failed to fetch user:', error.response?.data?.message || error.message)
-      // Si hay un error (ej. 401 Unauthorized), reseteamos el usuario
       user.value = null
     }
   }
@@ -53,14 +61,30 @@ export const useAuthStore = defineStore('auth', () => {
     return permissions.value.includes(permissionName)
   }
 
-  // --- RETURN ---
+  /**
+   * NUEVO: Verifica si el usuario tiene un rol específico.
+   * @param {string} roleName
+   */
+  const hasRole = (roleName) => {
+    return roles.value.includes(roleName)
+  }
+
+  // =================================================================
+  // EXPORTACIÓN PÚBLICA
+  // Todo lo que se devuelve aquí será accesible desde fuera de la store.
+  // =================================================================
   return {
+    // State
     user,
+    // Getters
     isAuthenticated,
     permissions,
+    roles,      // <-- EXPONER ROLES
+    // Actions
     login,
     logout,
     fetchUser,
-    can
+    can,
+    hasRole     // <-- EXPONER HASROLE
   }
 })
